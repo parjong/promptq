@@ -19,6 +19,10 @@ build-backend = "hatchling.build"
 [tool.hatch.version]
 source = "vcs"
 
+[tool.hatch.version.raw-options]
+# 태그가 없으면 0.1.dev5 대신 0.0.1.dev5로 나온다
+version_scheme = "python-simplified-semver"
+
 [tool.hatch.build.hooks.vcs]
 version-file = "src/promptq/_version.py"
 

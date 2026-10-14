@@ -1,0 +1,6 @@
+* text=auto eol=lf
+
+# GitHub 소스 tarball(git archive)에서도 hatch-vcs가 버전을 읽게 한다
+.git_archival.txt export-subst
+
+uv.lock linguist-generated=true
