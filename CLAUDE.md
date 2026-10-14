@@ -4,9 +4,8 @@ Guidance for Claude Code (and humans) working in this repository.
 
 ## Principles
 
-- **Comments and docstrings in `.py` files are written in English.** This applies to
-  `src/` and `tests/`. Runtime messages shown to users (exception messages, CLI output) follow
-  the design documents and may be Korean.
+- **Comments and docstrings in `.py` files are written in English.** Runtime messages shown to
+  users (exception messages, CLI output) follow the design documents and may be Korean.
 - `pyproject.toml`, CI workflows, and other config files are also written in English.
 - Run `uv run pre-commit run --all-files --hook-stage manual` before committing. It runs every
   check CI runs, including the tests.
