@@ -55,3 +55,23 @@ addopts = "-ra --strict-markers"
 python_version = "3.11"
 strict = true
 files = ["src", "tests"]
+
+[tool.importlinter]
+root_package = "promptq"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Layers: upper layers may only import lower ones"
+type = "layers"
+containers = ["promptq"]
+layers = [
+    "errors | _version",
+]
+exhaustive = true
+exhaustive_ignores = ["__main__"]
+
+[[tool.importlinter.contracts]]
+name = "No heavy external dependencies (zero runtime dependencies)"
+type = "forbidden"
+source_modules = ["promptq"]
+forbidden_modules = ["typer", "click", "rich", "pydantic"]
