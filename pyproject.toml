@@ -1,0 +1,57 @@
+[project]
+name = "promptq"
+dynamic = ["version"]
+description = "A small local queue for handing prompts between processes on one machine"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+promptq = "promptq.cli:main"
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+# The version comes from git tags; never write it in code. _version.py is generated on
+# build/sync and is not committed.
+# Release: git tag v0.1.0 && git push origin v0.1.0
+# Untagged builds are versioned 0.0.1.devN (see version_scheme below).
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+# Without any tag this yields 0.0.1.dev5 instead of 0.1.dev5.
+version_scheme = "python-simplified-semver"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/promptq/_version.py"
+
+[dependency-groups]
+# Dev tools are pinned exactly so local runs and CI behave the same.
+dev = [
+    "import-linter==2.15",
+    "mypy==2.4.0",
+    "pre-commit==4.7.0",
+    "pytest==9.1.1",
+    "ruff==0.17.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src", "tests"]
