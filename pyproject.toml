@@ -6,7 +6,9 @@ readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "click>=8.2,<9",
+]
 
 [project.scripts]
 promptq = "promptq.cli:main"
@@ -35,6 +37,7 @@ dev = [
     "import-linter==2.15",
     "mypy==2.4.0",
     "pre-commit==4.7.0",
+    "prysk==0.9",
     "pytest==9.1.1",
     "ruff==0.17.0",
 ]
@@ -68,6 +71,7 @@ name = "Layers: upper layers may only import lower ones"
 type = "layers"
 containers = ["promptq"]
 layers = [
+    "cli",
     "queue",
     "store",
     "selector | policy",
@@ -84,14 +88,29 @@ containers = ["promptq.store"]
 layers = ["factory", "directory", "manifest", "base"]
 
 [[tool.importlinter.contracts]]
-name = "Queue never imports a concrete Store directly"
+name = "Queue and CLI never import a concrete Store directly"
 type = "forbidden"
-source_modules = ["promptq.queue"]
+source_modules = ["promptq.queue", "promptq.cli"]
 forbidden_modules = ["promptq.store.directory"]
 allow_indirect_imports = true  # going through the factory is fine
 
 [[tool.importlinter.contracts]]
-name = "No heavy external dependencies (zero runtime dependencies)"
+name = "No heavy external dependencies"
 type = "forbidden"
 source_modules = ["promptq"]
-forbidden_modules = ["typer", "click", "rich", "pydantic"]
+forbidden_modules = ["typer", "rich", "pydantic"]
+
+[[tool.importlinter.contracts]]
+name = "Only the CLI may import click"
+type = "forbidden"
+source_modules = [
+    "promptq.queue",
+    "promptq.store",
+    "promptq.selector",
+    "promptq.policy",
+    "promptq.naming",
+    "promptq.home",
+    "promptq.models",
+    "promptq.errors",
+]
+forbidden_modules = ["click"]

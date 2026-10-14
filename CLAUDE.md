@@ -14,6 +14,7 @@ imported below, so they are not duplicated here. -->
 - Run the checks in CONTRIBUTING.md before committing.
 - Package layering is enforced by import-linter (`pyproject.toml`). Do not weaken a contract to
   make a change pass; fix the dependency direction instead.
-- Runtime dependencies stay at zero. Dev tools go in the `dev` dependency group.
+- Runtime dependencies stay minimal: `click`, used by the CLI only (import-linter enforces it, so
+  `import promptq` stays light). Dev tools go in the `dev` dependency group.
 - The version is derived from git tags (hatch-vcs). Never write a version number in code.
 - Never link or name private repositories in files, tests, commits, or PR descriptions.
