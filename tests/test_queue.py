@@ -7,6 +7,7 @@ from promptq.errors import (
     BodyTooLarge,
     InvalidName,
     InvalidSelector,
+    InvalidTitle,
     StoreError,
 )
 from promptq.models import Enqueued, Ignored, State
@@ -134,3 +135,21 @@ def test_store_injection_and_context_manager(tmp_path: Path) -> None:
         q.enqueue(NAME, "x", on_dup="ignore")
     assert (tmp_path / "injected" / "pending").exists()
     assert not (tmp_path / "ignored").exists()
+
+
+def test_title_travels_with_the_prompt(queue: Queue) -> None:
+    queue.enqueue(NAME, "do it", on_dup="ignore", title="Resolve PR 1")
+    queue.enqueue("GITHUB/o/r/OTHER/2", "no title", on_dup="ignore")
+    assert {e.name: e.title for e in queue.list()} == {
+        NAME: "Resolve PR 1",
+        "GITHUB/o/r/OTHER/2": None,
+    }
+    claimed = queue.claim_one(Selector.prefix(NAME))
+    assert claimed is not None and claimed.title == "Resolve PR 1"
+
+
+def test_invalid_title_is_rejected_before_anything_is_stored(queue: Queue) -> None:
+    for bad in ("", " padded ", "two\nlines", "x" * 201):
+        with pytest.raises(InvalidTitle):
+            queue.enqueue(NAME, "x", on_dup="ignore", title=bad)
+    assert not queue.has(PREFIX)
