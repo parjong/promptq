@@ -283,18 +283,19 @@ class DirectoryStore:
         return pruned
 
     def entries(self, selector: Selector | None) -> Sequence[Entry]:
+        """Entries oldest first, ordered like claim_one: by enqueued_at, then by name."""
         selector = selector or Selector()
-        result: list[Entry] = []
+        found: list[tuple[datetime, Entry]] = []
         for state in (State.PENDING, State.CLAIMED):
             for name, path in self._matching(state, selector):
                 try:
                     since = _utc(os.stat(path).st_mtime)
-                    title = self._read_envelope(path)[2]
+                    _, enqueued_at, title = self._read_envelope(path)
                 except FileNotFoundError:
                     continue
-                result.append(Entry(name, state, since, title))
-        result.sort(key=lambda e: (e.name, e.state))
-        return result
+                found.append((enqueued_at, Entry(name, state, since, title)))
+        found.sort(key=lambda item: (item[0], item[1].name))
+        return [entry for _, entry in found]
 
     def close(self) -> None:
         return None
