@@ -34,6 +34,12 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+      - id: lint-imports
+        name: import-linter
+        entry: uv run lint-imports --no-cache
+        language: system
+        pass_filenames: false
+        always_run: true
       - id: pytest
         name: pytest
         entry: uv run pytest
