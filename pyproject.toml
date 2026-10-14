@@ -80,7 +80,7 @@ exhaustive_ignores = ["__main__"]
 name = "Layers inside store"
 type = "layers"
 containers = ["promptq.store"]
-layers = ["manifest", "base"]
+layers = ["directory", "manifest", "base"]
 
 [[tool.importlinter.contracts]]
 name = "No heavy external dependencies (zero runtime dependencies)"
