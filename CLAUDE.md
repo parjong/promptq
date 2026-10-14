@@ -1,8 +1,6 @@
 # CLAUDE.md
 
 Guidance for Claude Code (and humans) working in this repository.
-Design documents: https://github.com/parjong/personal/pull/2323
-
 ## Principles
 
 - **Comments and docstrings in `.py` files are written in English.** This applies to
