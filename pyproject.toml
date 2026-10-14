@@ -66,7 +66,7 @@ type = "layers"
 containers = ["promptq"]
 layers = [
     "naming | home",
-    "models | errors",
+    "models | errors | _version",
 ]
 exhaustive = true
 exhaustive_ignores = ["__main__"]
