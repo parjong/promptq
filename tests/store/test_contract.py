@@ -157,3 +157,11 @@ def test_a_hand_edited_invalid_title_is_reported_as_corruption(
     item.write_text(json.dumps(data), encoding="utf-8")
     with pytest.raises(StoreError):
         store.entries(None)
+
+
+def test_entries_are_listed_in_claim_order(store: Store) -> None:
+    for name in ("a/z", "a/m", "a/b"):
+        enq(store, name)
+    listed = [e.name for e in store.entries(Selector.state(State.PENDING))]
+    claimed = [c.name for c in iter(lambda: store.claim_one(ALL), None)]
+    assert listed == claimed == ["a/z", "a/m", "a/b"]
