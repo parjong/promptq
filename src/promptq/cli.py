@@ -6,6 +6,7 @@ It parses arguments, prints results, and maps exceptions to exit codes:
 
 from __future__ import annotations
 
+import json
 import sys
 from collections.abc import Sequence
 from datetime import datetime
@@ -136,6 +137,79 @@ def prune_claimed(home_arg: str | None, matched: tuple[str, ...], dry_run: bool)
     for name in Queue(home_arg, create=False).prune_claimed(*selectors, dry_run=dry_run):
         click.echo(name)
     return EXIT_OK
+
+
+# --- consumer commands ---
+
+
+@cli.command("claim-one")
+@matched_option
+@click.option(
+    "--format",
+    "fmt",
+    type=click.Choice(["text", "json"]),
+    default="text",
+    show_default=True,
+    help="Output format.",
+)
+@click.option("--empty-ok", is_flag=True, help="Exit 0 even when nothing is available.")
+@click.option("--show-time", is_flag=True, help="Text format: also print the claim time.")
+@click.pass_obj
+def claim_one(
+    home_arg: str | None, matched: tuple[str, ...], fmt: str, empty_ok: bool, show_time: bool
+) -> int:
+    """Claim the oldest matching prompt and print it.
+
+    The first output line is always 'status: claimed' or 'status: empty'. In text format
+    everything after the '---' line is the prompt, byte for byte. Timestamps appear in
+    JSON always, and in text only with --show-time.
+    """
+    if not matched:
+        raise click.UsageError("Missing option '--matched'.")
+    selector = reduce(lambda a, b: a & b, (Selector.parse(text) for text in matched))
+    claimed = Queue(home_arg).claim_one(selector)
+    if claimed is None:
+        click.echo(json.dumps({"status": "empty"}) if fmt == "json" else "status: empty")
+        return EXIT_OK if empty_ok else EXIT_NOT_FOUND
+    if fmt == "json":
+        payload = {
+            "status": "claimed",
+            "name": claimed.name,
+            "enqueued_at": _timestamp(claimed.enqueued_at),
+            "claimed_at": _timestamp(claimed.claimed_at),
+            "body": claimed.body,
+        }
+        click.echo(json.dumps(payload, ensure_ascii=False))
+        return EXIT_OK
+    click.echo("status: claimed")
+    click.echo(f"name: {claimed.name}")
+    if show_time:
+        click.echo(f"claimed_at: {_timestamp(claimed.claimed_at)}")
+    click.echo("---")
+    click.echo(claimed.body, nl=False)
+    return EXIT_OK
+
+
+@cli.command()
+@click.option("--name", required=True, help="Name of a claimed prompt.")
+@click.pass_obj
+def dequeue(home_arg: str | None, name: str) -> int:
+    """Remove a claimed prompt once it has been handled."""
+    if Queue(home_arg).dequeue(name):
+        return EXIT_OK
+    click.echo(f"promptq: not claimed: {name}", err=True)
+    return EXIT_NOT_FOUND
+
+
+@cli.command()
+@click.option("--name", required=True, help="Name of a claimed prompt.")
+@click.pass_obj
+def release(home_arg: str | None, name: str) -> int:
+    """Hand a claimed prompt back to the queue when it cannot be handled."""
+    if Queue(home_arg).release(name):
+        return EXIT_OK
+    click.echo(f"promptq: not claimed: {name}", err=True)
+    return EXIT_NOT_FOUND
 
 
 # --- home ---
