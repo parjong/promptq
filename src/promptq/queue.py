@@ -11,7 +11,7 @@ from typing import Literal, Self
 from promptq.errors import BodyTooLarge
 from promptq.home import StrPath, resolve_home
 from promptq.models import Claimed, EnqueueResult, Entry, HomeResolution, State, StoreInfo
-from promptq.naming import Name
+from promptq.naming import Name, Title
 from promptq.selector import Cost, Selector
 from promptq.store.base import Store
 from promptq.store.factory import StoreFactory
@@ -75,12 +75,15 @@ class Queue:
 
     # --- Producer ---
 
-    def enqueue(self, name: str, body: str, *, on_dup: Literal["ignore"]) -> EnqueueResult:
+    def enqueue(
+        self, name: str, body: str, *, on_dup: Literal["ignore"], title: str | None = None
+    ) -> EnqueueResult:
         valid = Name(name)
+        valid_title = None if title is None else Title(title)
         size = len(body.encode("utf-8"))
         if size > MAX_BODY_BYTES:
             raise BodyTooLarge(f"body is larger than {MAX_BODY_BYTES} bytes: {size} bytes")
-        return self._open().enqueue(valid, body, on_dup)
+        return self._open().enqueue(valid, body, on_dup, valid_title)
 
     def has(self, selector: Selector) -> bool:
         selector.require_max_cost(Cost.NAME, command="has")
