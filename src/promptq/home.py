@@ -19,7 +19,7 @@ def _absolute(value: str, *, source: str) -> Path:
 
 
 def resolve_home(home: StrPath | None = None) -> HomeResolution:
-    """Resolve in order: argument > $PROMPTQ_HOME > $XDG_STATE_HOME/promptq > ~/.local/state/promptq.
+    """Resolve: argument > $PROMPTQ_HOME > $XDG_STATE_HOME/promptq > ~/.local/state/promptq.
 
     An empty environment variable counts as unset. Relative paths raise InvalidHome.
     """
