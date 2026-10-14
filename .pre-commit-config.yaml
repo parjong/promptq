@@ -40,6 +40,14 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+      # `uv run` puts the project's bin directory on PATH, so scenarios call the real `promptq`.
+      - id: prysk
+        name: prysk (CLI scenarios)
+        entry: env -u PROMPTQ_HOME -u XDG_STATE_HOME LC_ALL=C.UTF-8 uv run prysk tests/cli
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push, manual]
       - id: pytest
         name: pytest
         entry: uv run pytest

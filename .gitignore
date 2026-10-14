@@ -8,3 +8,6 @@ dist/
 build/
 *.egg-info/
 src/promptq/_version.py
+
+# prysk leaves .err files next to scenarios that fail
+*.t.err

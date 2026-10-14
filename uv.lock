@@ -523,26 +523,38 @@ wheels = [
 [[package]]
 name = "promptq"
 source = { editable = "." }
+dependencies = [
+    { name = "click" },
+]
 
 [package.dev-dependencies]
 dev = [
     { name = "import-linter" },
     { name = "mypy" },
     { name = "pre-commit" },
+    { name = "prysk" },
     { name = "pytest" },
     { name = "ruff" },
 ]
 
 [package.metadata]
+requires-dist = [{ name = "click", specifier = ">=8.2,<9" }]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "import-linter", specifier = "==2.15" },
     { name = "mypy", specifier = "==2.4.0" },
     { name = "pre-commit", specifier = "==4.7.0" },
+    { name = "prysk", specifier = "==0.9" },
     { name = "pytest", specifier = "==9.1.1" },
     { name = "ruff", specifier = "==0.17.0" },
 ]
+
+[[package]]
+name = "prysk"
+version = "0.9"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/3e/ca/f5f7097be50b13aa9ddb8045cf91eb9fa36951b78317a99f126aa06fc957/prysk-0.9.tar.gz", hash = "sha256:3e9ebf196225a565e16db429e26d88b0fb5332b11dd55bcbd576f2b9483afeb2", size = 35501, upload-time = "2022-01-29T10:06:07.842Z" }
 
 [[package]]
 name = "pygments"
