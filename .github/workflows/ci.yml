@@ -44,6 +44,10 @@ jobs:
       - run: uv run pytest
       - name: CLI scenarios
         run: uv run pre-commit run prysk --all-files --hook-stage manual
+      - name: README examples
+        run: uv run pre-commit run prysk-readme --all-files --hook-stage manual
+      - name: Python example
+        run: uv run pre-commit run example-api --all-files --hook-stage manual
 
   # Single job to register as the required status check. It aggregates the jobs above, so the
   # test matrix can change without touching branch protection. `always()` makes a failed or
