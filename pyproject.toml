@@ -68,12 +68,19 @@ name = "Layers: upper layers may only import lower ones"
 type = "layers"
 containers = ["promptq"]
 layers = [
+    "store",
     "selector | policy",
     "naming | home",
     "models | errors | _version",
 ]
 exhaustive = true
 exhaustive_ignores = ["__main__"]
+
+[[tool.importlinter.contracts]]
+name = "Layers inside store"
+type = "layers"
+containers = ["promptq.store"]
+layers = ["base"]
 
 [[tool.importlinter.contracts]]
 name = "No heavy external dependencies (zero runtime dependencies)"
