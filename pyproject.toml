@@ -1,7 +1,7 @@
 [project]
 name = "promptq"
 dynamic = ["version"]
-description = "외부 프로세스가 만든 프롬프트를 같은 기기의 Claude 세션이 가져가 처리하게 해주는 로컬 대기열"
+description = "A local queue that lets a Claude session on the same machine pick up prompts created by external processes"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
@@ -15,12 +15,12 @@ promptq = "promptq.cli:main"
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
-# 버전은 git 태그(v0.1.0 등)에서 정해진다. _version.py는 빌드/동기화 때 생성되며 커밋하지 않는다.
+# The version comes from git tags (e.g. v0.1.0). _version.py is generated on build/sync and is not committed.
 [tool.hatch.version]
 source = "vcs"
 
 [tool.hatch.version.raw-options]
-# 태그가 없으면 0.1.dev5 대신 0.0.1.dev5로 나온다
+# Without any tag this yields 0.0.1.dev5 instead of 0.1.dev5.
 version_scheme = "python-simplified-semver"
 
 [tool.hatch.build.hooks.vcs]

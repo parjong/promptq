@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
         with:
-          fetch-depth: 0  # hatch-vcs가 git 태그로 버전을 정한다
+          fetch-depth: 0  # hatch-vcs derives the version from git tags
       - uses: astral-sh/setup-uv@v10.3.0
         with:
           enable-cache: true
@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
         with:
-          fetch-depth: 0  # hatch-vcs가 git 태그로 버전을 정한다
+          fetch-depth: 0  # hatch-vcs derives the version from git tags
       - uses: astral-sh/setup-uv@v10.3.0
         with:
           enable-cache: true

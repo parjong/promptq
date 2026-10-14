@@ -1,4 +1,4 @@
-"""promptq: 외부 프로세스가 만든 프롬프트를 같은 기기에서 처리하게 해주는 로컬 대기열."""
+"""promptq: a local queue for prompts produced by external processes."""
 
 from promptq._version import __version__
 
