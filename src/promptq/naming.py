@@ -1,4 +1,4 @@
-"""이름 검증. 이름은 변환하지 않고 검증만 한다 (결정 #2)."""
+"""Name validation. Names are validated, never normalized (decision #2)."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def _check_segments(value: str, *, what: str) -> None:
 
 
 class Name(str):
-    """검증된 이름. `/`로 구분한 세그먼트의 나열이고 각 세그먼트는 [A-Za-z0-9._-]+."""
+    """A validated name: `/`-separated segments, each matching [A-Za-z0-9._-]+."""
 
     __slots__ = ()
 
@@ -38,7 +38,7 @@ class Name(str):
 
 
 class Prefix(str):
-    """검증된 prefix. 끝의 `/`는 세그먼트 경계를 뜻하므로 허용한다."""
+    """A validated prefix. A trailing `/` is allowed since it marks a segment boundary."""
 
     __slots__ = ()
 

@@ -1,4 +1,4 @@
-"""값 객체. promptq의 다른 모듈을 런타임에 import하지 않는다."""
+"""Value objects. Never imports other promptq modules at runtime."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ class Enqueued:
 
 @dataclass(frozen=True, slots=True)
 class Ignored:
-    """같은 이름이 이미 있어서 무시됨."""
+    """Ignored because the same name already exists."""
 
     name: Name
     existing_state: State
@@ -48,12 +48,12 @@ class Claimed:
 class Entry:
     name: Name
     state: State
-    since: datetime  # 현재 상태에 들어온 시각 (tz-aware UTC). older-than 기준
+    since: datetime  # When it entered its current state (tz-aware UTC); the basis of older-than
 
 
 @dataclass(frozen=True, slots=True)
 class StoreInfo:
-    """check()의 결과. 저장소가 없으면 exists=False이고 나머지는 None이다."""
+    """Result of check(). If the store does not exist, exists is False and the rest is None."""
 
     home: Path
     exists: bool
@@ -72,5 +72,5 @@ class HomeSource(enum.StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class HomeResolution:
-    path: Path  # 항상 절대 경로
+    path: Path  # always absolute
     source: HomeSource

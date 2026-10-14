@@ -1,4 +1,4 @@
-"""저장소 경로 해석 (08). 파일시스템에 접근하지 않는다."""
+"""Store path resolution (08). Never touches the filesystem."""
 
 from __future__ import annotations
 
@@ -19,9 +19,9 @@ def _absolute(value: str, *, source: str) -> Path:
 
 
 def resolve_home(home: StrPath | None = None) -> HomeResolution:
-    """인자 > $PROMPTQ_HOME > $XDG_STATE_HOME/promptq > ~/.local/state/promptq 순으로 해석한다.
+    """Resolve in order: argument > $PROMPTQ_HOME > $XDG_STATE_HOME/promptq > ~/.local/state/promptq.
 
-    빈 환경 변수는 미설정으로 본다. 상대 경로는 InvalidHome이다.
+    An empty environment variable counts as unset. Relative paths raise InvalidHome.
     """
     if home is not None:
         return HomeResolution(_absolute(os.fspath(home), source="home 인자"), HomeSource.ARGUMENT)

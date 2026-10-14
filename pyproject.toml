@@ -57,11 +57,11 @@ files = ["src", "tests"]
 [tool.importlinter]
 root_package = "promptq"
 include_external_packages = true
-# models가 타입 힌트용으로만 naming을 가리키므로 TYPE_CHECKING import는 레이어 검사에서 제외한다
+# models only references naming for type hints, so TYPE_CHECKING imports are excluded from layer checks
 exclude_type_checking_imports = true
 
 [[tool.importlinter.contracts]]
-name = "레이어: 위가 아래만 import한다"
+name = "Layers: upper layers may only import lower ones"
 type = "layers"
 containers = ["promptq"]
 layers = [
@@ -72,7 +72,7 @@ exhaustive = true
 exhaustive_ignores = ["__main__"]
 
 [[tool.importlinter.contracts]]
-name = "무거운 외부 의존성 금지 (런타임 의존성 0)"
+name = "No heavy external dependencies (zero runtime dependencies)"
 type = "forbidden"
 source_modules = ["promptq"]
 forbidden_modules = ["typer", "click", "rich", "pydantic"]
