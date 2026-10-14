@@ -57,7 +57,7 @@ addopts = "-ra --strict-markers"
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["src", "tests", "examples"]
+files = ["src", "tests", "guide"]
 
 [tool.importlinter]
 root_package = "promptq"

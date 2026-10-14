@@ -48,10 +48,11 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-push, manual]
-      # README examples are indented by four spaces so they render as code blocks and run as tests.
+      # README and tutorial examples are indented by four spaces so they render as code blocks and
+      # run as tests. The numbered tutorial files are matched by glob, so sh -c expands it.
       - id: prysk-readme
-        name: prysk (README examples)
-        entry: env -u PROMPTQ_HOME -u XDG_STATE_HOME LC_ALL=C.UTF-8 uv run prysk --indent=4 README.md
+        name: prysk (README and tutorial examples)
+        entry: sh -c 'env -u PROMPTQ_HOME -u XDG_STATE_HOME LC_ALL=C.UTF-8 uv run prysk --indent=4 README.md guide/tutorial/[0-9]*.md'
         language: system
         pass_filenames: false
         always_run: true
@@ -59,7 +60,7 @@ repos:
       # The Python example is a real script, so ruff and mypy check it and this hook runs it.
       - id: example-api
         name: example (Python API)
-        entry: sh -c 'PROMPTQ_HOME="$(mktemp -d)/queue" uv run python examples/how_to_api.py'
+        entry: sh -c 'PROMPTQ_HOME="$(mktemp -d)/queue" uv run python guide/how_to_use_api.py'
         language: system
         pass_filenames: false
         always_run: true

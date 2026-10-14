@@ -44,7 +44,7 @@ jobs:
       - run: uv run pytest
       - name: CLI scenarios
         run: uv run pre-commit run prysk --all-files --hook-stage manual
-      - name: README examples
+      - name: README and tutorial examples
         run: uv run pre-commit run prysk-readme --all-files --hook-stage manual
       - name: Python example
         run: uv run pre-commit run example-api --all-files --hook-stage manual
