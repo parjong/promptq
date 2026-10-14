@@ -29,7 +29,7 @@ The time of the claim is printed only on request, with --show-time.
 Scripts can ask for JSON, where the body is escaped safely and timestamps are always present.
 
   $ promptq claim-one --matched prefix:$P/ --format json
-  {"status": "claimed", "name": "GITHUB/octocat/hello/KIND/2", "enqueued_at": "*", "claimed_at": "*", "body": "second"} (glob)
+  {"status": "claimed", "name": "GITHUB/octocat/hello/KIND/2", "title": null, "enqueued_at": "*", "claimed_at": "*", "body": "second"} (glob)
 
 Nothing left: exit 1 by default, or exit 0 with --empty-ok for callers that treat 1 as a failure.
 
