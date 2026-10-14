@@ -1,0 +1,6 @@
+* text=auto eol=lf
+
+# Let hatch-vcs read the version from GitHub source tarballs (git archive) too
+.git_archival.txt export-subst
+
+uv.lock linguist-generated=true
