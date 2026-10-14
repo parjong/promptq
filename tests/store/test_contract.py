@@ -1,13 +1,14 @@
 """Store contract tests: every implementation must behave the same way (D16)."""
 
+import json
 from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
-from promptq.errors import NameConflict
+from promptq.errors import NameConflict, StoreError
 from promptq.models import Claimed, Enqueued, Ignored, State
-from promptq.naming import Name
+from promptq.naming import Name, Title
 from promptq.selector import Selector
 from promptq.store.base import Store
 from tests.store.conftest import age
@@ -117,3 +118,42 @@ def test_claim_refreshes_claim_time(store: Store, store_dir: Path) -> None:
     age(store_dir / "pending" / "a" / "1", timedelta(days=2))
     store.claim_one(ALL)
     assert store.prune_claimed(Selector.parse("older-than:1h")) == []
+
+
+def test_title_is_kept_from_enqueue_to_claim(store: Store) -> None:
+    store.enqueue(Name("a/1"), "body", "ignore", Title("Fix PR 12"))
+    store.enqueue(Name("a/2"), "body", "ignore")
+    assert {e.name: e.title for e in store.entries(None)} == {"a/1": "Fix PR 12", "a/2": None}
+    first = store.claim_one(Selector.prefix("a/1"))
+    second = store.claim_one(Selector.prefix("a/2"))
+    assert first is not None and first.title == "Fix PR 12"
+    assert second is not None and second.title is None
+
+
+def test_title_survives_release_and_shows_for_claimed_entries(store: Store) -> None:
+    store.enqueue(Name("a/1"), "body", "ignore", Title("Fix PR 12"))
+    store.claim_one(ALL)
+    assert [e.title for e in store.entries(Selector.state(State.CLAIMED))] == ["Fix PR 12"]
+    store.release(Name("a/1"))
+    again = store.claim_one(ALL)
+    assert again is not None and again.title == "Fix PR 12"
+
+
+def test_a_duplicate_keeps_the_original_title(store: Store) -> None:
+    store.enqueue(Name("a/1"), "body", "ignore", Title("First"))
+    result = store.enqueue(Name("a/1"), "other", "ignore", Title("Second"))
+    assert isinstance(result, Ignored)
+    claimed = store.claim_one(ALL)
+    assert claimed is not None and claimed.title == "First"
+
+
+def test_a_hand_edited_invalid_title_is_reported_as_corruption(
+    store: Store, store_dir: Path
+) -> None:
+    store.enqueue(Name("a/1"), "body", "ignore", Title("Fine"))
+    item = store_dir / "pending" / "a" / "1"
+    data = json.loads(item.read_text(encoding="utf-8"))
+    data["title"] = "two\nlines"
+    item.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(StoreError):
+        store.entries(None)

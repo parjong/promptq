@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from typing import Literal, Protocol
 
 from promptq.models import Claimed, EnqueueResult, Entry
-from promptq.naming import Name
+from promptq.naming import Name, Title
 from promptq.selector import Selector
 
 
@@ -14,7 +14,9 @@ class Store(Protocol):
     @property
     def kind(self) -> str: ...
 
-    def enqueue(self, name: Name, body: str, on_dup: Literal["ignore"]) -> EnqueueResult: ...
+    def enqueue(
+        self, name: Name, body: str, on_dup: Literal["ignore"], title: Title | None = None
+    ) -> EnqueueResult: ...
     def has(self, selector: Selector) -> bool: ...
     def claim_one(self, selector: Selector) -> Claimed | None: ...
     def dequeue(self, name: Name) -> bool: ...
