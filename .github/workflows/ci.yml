@@ -16,12 +16,13 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           enable-cache: true
       - run: uv sync --locked
-      - run: uv run pre-commit run --all-files --show-diff-on-failure
+      - name: pre-commit (ruff, mypy)
+        run: uv run pre-commit run --all-files --show-diff-on-failure
 
   test:
     runs-on: ubuntu-latest
@@ -30,8 +31,8 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
