@@ -7,9 +7,7 @@
 ```bash
 uv sync
 uv run pre-commit install --hook-type pre-commit --hook-type pre-push
-uv run pre-commit run --all-files
-uv run mypy
-uv run pytest
+uv run pre-commit run --all-files --hook-stage manual  # all checks, including tests
 ```
 
 ## 버전

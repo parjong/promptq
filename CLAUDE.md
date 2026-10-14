@@ -1,14 +1,15 @@
 # CLAUDE.md
 
 Guidance for Claude Code (and humans) working in this repository.
+
 ## Principles
 
 - **Comments and docstrings in `.py` files are written in English.** This applies to
   `src/` and `tests/`. Runtime messages shown to users (exception messages, CLI output) follow
   the design documents and may be Korean.
 - `pyproject.toml`, CI workflows, and other config files are also written in English.
-- Every change must pass the CI gates, which run locally with:
-  `uv run pre-commit run --all-files` (ruff, mypy `--strict`, import-linter) and `uv run pytest`.
+- Run `uv run pre-commit run --all-files --hook-stage manual` before committing. It runs every
+  check CI runs, including the tests.
 - Package layering is enforced by import-linter (`pyproject.toml`). Do not weaken a contract to
   make a change pass; fix the dependency direction instead.
 - Runtime dependencies stay at zero. Dev tools go in the `dev` dependency group.
