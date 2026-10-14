@@ -59,6 +59,9 @@ files = ["src", "tests"]
 [tool.importlinter]
 root_package = "promptq"
 include_external_packages = true
+# models only references naming for type hints, so TYPE_CHECKING imports are excluded from
+# layer checks
+exclude_type_checking_imports = true
 
 [[tool.importlinter.contracts]]
 name = "Layers: upper layers may only import lower ones"
@@ -66,7 +69,7 @@ type = "layers"
 containers = ["promptq"]
 layers = [
     "naming",
-    "errors | _version",
+    "models | errors | _version",
 ]
 exhaustive = true
 exhaustive_ignores = ["__main__"]
