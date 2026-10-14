@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from promptq.models import (
+    Claimed,
     Enqueued,
     EnqueueResult,
     Entry,
@@ -14,7 +15,7 @@ from promptq.models import (
     State,
     StoreInfo,
 )
-from promptq.naming import Name
+from promptq.naming import Name, Title
 
 
 def test_state_values_match_cli_strings() -> None:
@@ -45,3 +46,11 @@ def test_store_info_and_home_resolution() -> None:
     info = StoreInfo(Path("/x"), False, None, None, None, None)
     assert not info.exists
     assert HomeResolution(Path("/x"), HomeSource.DEFAULT).source == "default"
+
+
+def test_title_is_optional_and_defaults_to_none() -> None:
+    moment = datetime(2026, 1, 1, tzinfo=UTC)
+    assert Entry(Name("a/1"), State.PENDING, moment).title is None
+    assert Claimed(Name("a/1"), "body", moment, moment).title is None
+    titled = Claimed(Name("a/1"), "body", moment, moment, Title("Fix PR 12"))
+    assert titled.title == "Fix PR 12"

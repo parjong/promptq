@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from datetime import datetime
     from pathlib import Path
 
-    from promptq.naming import Name
+    from promptq.naming import Name, Title
 
 
 class State(enum.StrEnum):
@@ -42,6 +42,7 @@ class Claimed:
     body: str
     enqueued_at: datetime
     claimed_at: datetime
+    title: Title | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,6 +50,7 @@ class Entry:
     name: Name
     state: State
     since: datetime  # When it entered its current state (tz-aware UTC); the basis of older-than
+    title: Title | None = None
 
 
 @dataclass(frozen=True, slots=True)
