@@ -7,6 +7,7 @@ from promptq.errors import (
     InvalidHome,
     InvalidName,
     InvalidSelector,
+    InvalidTitle,
     NameConflict,
     PromptqError,
     StoreError,
@@ -23,7 +24,7 @@ from promptq.models import (
     State,
     StoreInfo,
 )
-from promptq.naming import Name, Prefix
+from promptq.naming import Name, Prefix, Title
 from promptq.queue import Queue
 from promptq.selector import Selector
 
@@ -40,6 +41,7 @@ __all__ = [
     "InvalidHome",
     "InvalidName",
     "InvalidSelector",
+    "InvalidTitle",
     "Name",
     "NameConflict",
     "Prefix",
@@ -49,6 +51,7 @@ __all__ = [
     "State",
     "StoreError",
     "StoreInfo",
+    "Title",
     "__version__",
     "resolve_home",
 ]
