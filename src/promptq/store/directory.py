@@ -12,9 +12,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
 
-from promptq.errors import IncompatibleStore, InvalidName, NameConflict, StoreError
+from promptq.errors import IncompatibleStore, InvalidName, InvalidTitle, NameConflict, StoreError
 from promptq.models import Claimed, Enqueued, EnqueueResult, Entry, State
-from promptq.naming import Name
+from promptq.naming import Name, Title
 from promptq.policy import resolve_policy
 from promptq.selector import EntryView, Selector
 from promptq.store.manifest import MANIFEST_NAME, new_manifest, publish_manifest, read_manifest
@@ -130,13 +130,15 @@ class DirectoryStore:
     # --- envelope ---
 
     @staticmethod
-    def _read_envelope(path: Path) -> tuple[str, datetime]:
+    def _read_envelope(path: Path) -> tuple[str, datetime, Title | None]:
+        """Return (body, enqueued_at, title). The title is optional and absent in older items."""
         try:
             raw = json.loads(path.read_text(encoding="utf-8"))
-            return str(raw["body"]), datetime.fromisoformat(raw["enqueued_at"])
+            title = Title(raw["title"]) if raw.get("title") is not None else None
+            return str(raw["body"]), datetime.fromisoformat(raw["enqueued_at"]), title
         except FileNotFoundError:
             raise
-        except (OSError, ValueError, KeyError, TypeError) as exc:
+        except (OSError, ValueError, KeyError, TypeError, InvalidTitle) as exc:
             raise StoreError(f"item file is corrupted: {path}: {exc!r}") from exc
 
     # --- operations ---
@@ -167,7 +169,9 @@ class DirectoryStore:
         except OSError:
             return
 
-    def enqueue(self, name: Name, body: str, on_dup: Literal["ignore"]) -> EnqueueResult:
+    def enqueue(
+        self, name: Name, body: str, on_dup: Literal["ignore"], title: Title | None = None
+    ) -> EnqueueResult:
         policy = resolve_policy(on_dup)
         self._ensure_initialized()
         existing = self._existing_state(name)
@@ -175,6 +179,8 @@ class DirectoryStore:
             return policy.on_duplicate(name, existing)
         self._gc_tmp()
         envelope = {"v": 1, "name": str(name), "enqueued_at": _iso(self._clock()), "body": body}
+        if title is not None:
+            envelope["title"] = str(title)
         tmp = self._home / "tmp" / f"{os.getpid()}-{uuid.uuid4().hex}"
         with tmp.open("wb") as f:
             f.write(json.dumps(envelope, ensure_ascii=False).encode("utf-8"))
@@ -212,7 +218,7 @@ class DirectoryStore:
         candidates: list[tuple[datetime, str, Name, Path]] = []
         for name, path in self._matching(State.PENDING, selector):
             try:
-                _, enqueued_at = self._read_envelope(path)
+                _, enqueued_at, _ = self._read_envelope(path)
             except FileNotFoundError:
                 continue  # another consumer already took it
             candidates.append((enqueued_at, str(name), name, path))
@@ -229,8 +235,8 @@ class DirectoryStore:
                         continue  # raced with cleanup of the claimed-side directory
                     break  # another consumer won the race; try the next candidate
                 self._cleanup_dirs(State.PENDING, src)
-                body, enqueued_at = self._read_envelope(dst)
-                return Claimed(name, body, enqueued_at, _utc(os.stat(dst).st_mtime))
+                body, enqueued_at, title = self._read_envelope(dst)
+                return Claimed(name, body, enqueued_at, _utc(os.stat(dst).st_mtime), title)
         return None
 
     def dequeue(self, name: Name) -> bool:
@@ -283,9 +289,10 @@ class DirectoryStore:
             for name, path in self._matching(state, selector):
                 try:
                     since = _utc(os.stat(path).st_mtime)
+                    title = self._read_envelope(path)[2]
                 except FileNotFoundError:
                     continue
-                result.append(Entry(name, state, since))
+                result.append(Entry(name, state, since, title))
         result.sort(key=lambda e: (e.name, e.state))
         return result
 
