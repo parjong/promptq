@@ -5,10 +5,11 @@ from __future__ import annotations
 import re
 from typing import Self
 
-from promptq.errors import InvalidName
+from promptq.errors import InvalidName, InvalidTitle
 
 MAX_SEGMENT_LENGTH = 128
 MAX_NAME_LENGTH = 512
+MAX_TITLE_LENGTH = 200
 
 _SEGMENT = re.compile(r"[A-Za-z0-9._-]+")
 
@@ -46,4 +47,25 @@ class Prefix(str):
 
     def __new__(cls, value: str) -> Self:
         _check_segments(value.removesuffix("/"), what="prefix")
+        return super().__new__(cls, value)
+
+
+class Title(str):
+    """A validated title: one printable line without leading or trailing whitespace.
+
+    Keeping a title to a single trimmed line lets callers print it as the last column of a line
+    and read it back as "the rest of the line".
+    """
+
+    __slots__ = ()
+
+    def __new__(cls, value: str) -> Self:
+        if not value:
+            raise InvalidTitle("title is empty")
+        if len(value) > MAX_TITLE_LENGTH:
+            raise InvalidTitle(f"title is longer than {MAX_TITLE_LENGTH} characters: {len(value)}")
+        if value != value.strip():
+            raise InvalidTitle("title has leading or trailing whitespace")
+        if not value.isprintable():
+            raise InvalidTitle("title must be a single line without control characters")
         return super().__new__(cls, value)

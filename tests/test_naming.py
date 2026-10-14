@@ -1,7 +1,7 @@
 import pytest
 
-from promptq.errors import InvalidName
-from promptq.naming import Name, Prefix
+from promptq.errors import InvalidName, InvalidTitle
+from promptq.naming import Name, Prefix, Title
 
 
 @pytest.mark.parametrize(
@@ -49,3 +49,17 @@ def test_valid_prefixes(value: str) -> None:
 def test_invalid_prefixes(value: str) -> None:
     with pytest.raises(InvalidName):
         Prefix(value)
+
+
+@pytest.mark.parametrize("value", ["a", "PR 12의 충돌 해결", "x" * 200, "inner  spaces  stay"])
+def test_valid_titles(value: str) -> None:
+    assert Title(value) == value
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["", " a", "a ", "a\nb", "a\tb", "a\u2028b", "a\x00b", "x" * 201],
+)
+def test_invalid_titles(value: str) -> None:
+    with pytest.raises(InvalidTitle):
+        Title(value)
