@@ -537,11 +537,11 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "import-linter", specifier = ">=2.15" },
-    { name = "mypy", specifier = ">=2.4.0" },
-    { name = "pre-commit", specifier = ">=4.7.0" },
-    { name = "pytest", specifier = ">=9.1.1" },
-    { name = "ruff", specifier = ">=0.17.0" },
+    { name = "import-linter", specifier = "==2.15" },
+    { name = "mypy", specifier = "==2.4.0" },
+    { name = "pre-commit", specifier = "==4.7.0" },
+    { name = "pytest", specifier = "==9.1.1" },
+    { name = "ruff", specifier = "==0.17.0" },
 ]
 
 [[package]]
