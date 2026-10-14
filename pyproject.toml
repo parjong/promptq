@@ -1,6 +1,6 @@
 [project]
 name = "promptq"
-version = "0.1.0"
+dynamic = ["version"]
 description = "외부 프로세스가 만든 프롬프트를 같은 기기의 Claude 세션이 가져가 처리하게 해주는 로컬 대기열"
 readme = "README.md"
 license = "Apache-2.0"
@@ -12,8 +12,15 @@ dependencies = []
 promptq = "promptq.cli:main"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+# 버전은 git 태그(v0.1.0 등)에서 정해진다. _version.py는 빌드/동기화 때 생성되며 커밋하지 않는다.
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/promptq/_version.py"
 
 [dependency-groups]
 dev = [

@@ -13,3 +13,11 @@ uv run pre-commit run --all-files
 uv run mypy
 uv run pytest
 ```
+
+## 버전
+
+버전은 git 태그에서 자동으로 정해집니다 (hatch-vcs). 코드에 버전을 적지 않습니다. 릴리스는 태그만 찍으면 됩니다.
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
