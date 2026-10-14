@@ -68,7 +68,7 @@ name = "Layers: upper layers may only import lower ones"
 type = "layers"
 containers = ["promptq"]
 layers = [
-    "naming",
+    "naming | home",
     "models | errors | _version",
 ]
 exhaustive = true
