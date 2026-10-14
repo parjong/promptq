@@ -6,7 +6,7 @@ from promptq.naming import Name, Prefix
 
 @pytest.mark.parametrize(
     "value",
-    ["a", "GITHUB/parjong/personal/RESOLVE_PR_CONFLICT/12", "foo.bar/x-y_z", "a" * 128, "...x"],
+    ["a", "GITHUB/octocat/hello-world/RESOLVE_PR_CONFLICT/12", "foo.bar/x-y_z", "a" * 128, "...x"],
 )
 def test_valid_names(value: str) -> None:
     assert Name(value) == value
