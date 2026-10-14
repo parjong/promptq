@@ -7,6 +7,7 @@ from promptq import errors
     "exc",
     [
         errors.InvalidName,
+        errors.InvalidTitle,
         errors.NameConflict,
         errors.InvalidSelector,
         errors.InvalidHome,

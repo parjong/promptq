@@ -9,6 +9,10 @@ class InvalidName(PromptqError):
     """A name or prefix violates the format rules."""
 
 
+class InvalidTitle(PromptqError):
+    """A title violates the format rules."""
+
+
 class NameConflict(PromptqError):
     """A name is an ancestor or descendant of another name and cannot coexist with it."""
 
