@@ -90,6 +90,21 @@ Consumer가 죽으면 claim된 항목이 남습니다. Producer가 새로 넣기
 
 `--dry-run`을 붙이면 지우지 않고 대상만 보여 줍니다.
 
+### 5. 제목 붙이기
+
+`--title`로 프롬프트에 한 줄 제목을 붙일 수 있습니다. 선택 사항이고, 이 프롬프트를 처리하는 세션의 이름처럼 사람이 보는 이름으로 쓰기 좋습니다. 제목은 `list`의 마지막 열과 `claim-one` 출력에 나옵니다. 앞뒤 공백 없는 한 줄이어야 하고 200자까지입니다.
+
+    $ promptq enqueue --name myapp/REPORT/1 --title 'Write the weekly report' --file prompt.md --on-dup ignore
+    $ promptq list
+    pending myapp/REPORT/1 Write the weekly report
+    $ promptq claim-one --matched prefix:myapp/REPORT/ | head -3
+    status: claimed
+    name: myapp/REPORT/1
+    title: Write the weekly report
+    $ promptq dequeue --name myapp/REPORT/1
+
+이름에는 공백이 없으므로 스크립트에서는 `read -r state name title`로 읽으면 `title`이 줄의 나머지입니다.
+
 ## Python API
 
 CLI와 같은 동작을 라이브러리로 쓸 수 있습니다. 넣기, 가져가기, 지우기를 한 번씩 해 보는 예제는 [examples/how_to_api.py](examples/how_to_api.py)에 있습니다. 저장소를 clone한 뒤 임시 디렉터리를 큐로 삼아 실행해 보세요.
@@ -110,11 +125,13 @@ Self-hosted Runner의 스케줄 잡(Producer)이 PR의 충돌 같은 일을 발�
 - 이름을 `GITHUB/<owner>/<repo>/<종류>/<번호>`로 정하면 같은 PR은 몇 번 발견해도 한 번만 들어갑니다.
 - 세션을 시작할 때 hook이 `has`로 해당 repo의 항목이 있는지만 확인하고, 있으면 별도 세션(Chip)을 제안합니다.
 - 그 세션이 `claim-one`을 `status: empty`가 나올 때까지 반복해 처리합니다.
+- 제목을 붙여 두면 hook이 `has`가 성공했을 때 `promptq list`의 첫 줄(다음에 가져갈 항목)에서 제목을 읽어, 띄우는 세션의 이름으로 쓸 수 있습니다.
 
 ```bash
 # Producer (Actions 잡): 오래된 claim을 정리하고 새 일을 넣는다
 promptq prune-claimed --matched older-than:6h
-promptq enqueue --name "GITHUB/octocat/hello/RESOLVE_PR_CONFLICT/12" --file prompt.md --on-dup ignore --dup-ok
+promptq enqueue --name "GITHUB/octocat/hello/RESOLVE_PR_CONFLICT/12" --title "Resolve the conflict in PR 12" \
+  --file prompt.md --on-dup ignore --dup-ok
 
 # 세션 시작 hook: 출력 없이 종료 코드만 본다
 promptq has --matched "prefix:GITHUB/octocat/hello/" --quiet
