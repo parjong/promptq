@@ -16,9 +16,9 @@ repos:
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.13.1
     hooks:
-      # Fails when uv.lock is out of date with pyproject.toml
+      # Re-locks when pyproject.toml changed. Locally it updates uv.lock; in CI the modified
+      # file makes the hook fail, so a stale uv.lock cannot be merged.
       - id: uv-lock
-        args: [--check]
   - repo: local
     hooks:
       - id: mypy
