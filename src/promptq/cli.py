@@ -80,11 +80,16 @@ def cli(ctx: click.Context, home: str | None) -> None:
     help="What to do if the name already exists.",
 )
 @click.option("--dup-ok", is_flag=True, help="Exit 0 even when the name already exists.")
+@click.option(
+    "--title", help="Optional one-line title, e.g. for naming the session that handles it."
+)
 @click.pass_obj
-def enqueue(home_arg: str | None, name: str, file: str, on_dup: str, dup_ok: bool) -> int:
+def enqueue(
+    home_arg: str | None, name: str, file: str, on_dup: str, dup_ok: bool, title: str | None
+) -> int:
     """Add a prompt to the queue."""
     body = _read_body(file)
-    result = Queue(home_arg).enqueue(name, body, on_dup="ignore")
+    result = Queue(home_arg).enqueue(name, body, on_dup="ignore", title=title)
     if isinstance(result, Ignored):
         click.echo(
             f"promptq: ignored: {result.name} already exists ({result.existing_state.value})",
@@ -117,12 +122,18 @@ def has(home_arg: str | None, matched: tuple[str, ...], quiet: bool) -> int:
 @click.option("--show-time", is_flag=True, help="Also print when each prompt entered its state.")
 @click.pass_obj
 def list_(home_arg: str | None, matched: tuple[str, ...], show_time: bool) -> int:
-    """List prompts by name as '<state> <name>' (or '<state> <time> <name>')."""
+    """List prompts oldest first, one per line.
+
+    Columns: '<state> [<time>] <name> [<title>]'. The time appears with --show-time and the
+    title only when the prompt has one; it is last because it may contain spaces.
+    """
     selectors = [Selector.parse(text) for text in matched]
     for entry in Queue(home_arg, create=False).list(*selectors):
         columns = [entry.state.value, entry.name]
         if show_time:
             columns.insert(1, _timestamp(entry.since))
+        if entry.title is not None:
+            columns.append(entry.title)  # last, so a reader can take "the rest of the line"
         click.echo(" ".join(columns))
     return EXIT_OK
 
@@ -175,6 +186,7 @@ def claim_one(
         payload = {
             "status": "claimed",
             "name": claimed.name,
+            "title": claimed.title,
             "enqueued_at": _timestamp(claimed.enqueued_at),
             "claimed_at": _timestamp(claimed.claimed_at),
             "body": claimed.body,
@@ -183,6 +195,8 @@ def claim_one(
         return EXIT_OK
     click.echo("status: claimed")
     click.echo(f"name: {claimed.name}")
+    if claimed.title is not None:
+        click.echo(f"title: {claimed.title}")
     if show_time:
         click.echo(f"claimed_at: {_timestamp(claimed.claimed_at)}")
     click.echo("---")
