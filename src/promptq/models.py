@@ -37,6 +37,25 @@ EnqueueResult = Enqueued | Ignored
 
 
 @dataclass(frozen=True, slots=True)
+class Withdrawn:
+    name: Name
+    state: State  # the state the prompt was removed from
+    withdrawn: Literal[True] = True
+
+
+@dataclass(frozen=True, slots=True)
+class NotWithdrawn:
+    """Nothing was removed. existing_state is None if the name is absent, CLAIMED if it is held."""
+
+    name: Name
+    existing_state: State | None
+    withdrawn: Literal[False] = False
+
+
+WithdrawResult = Withdrawn | NotWithdrawn
+
+
+@dataclass(frozen=True, slots=True)
 class Claimed:
     name: Name
     body: str

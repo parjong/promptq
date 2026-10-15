@@ -10,7 +10,15 @@ from typing import Literal, Self
 
 from promptq.errors import BodyTooLarge
 from promptq.home import StrPath, resolve_home
-from promptq.models import Claimed, EnqueueResult, Entry, HomeResolution, State, StoreInfo
+from promptq.models import (
+    Claimed,
+    EnqueueResult,
+    Entry,
+    HomeResolution,
+    State,
+    StoreInfo,
+    WithdrawResult,
+)
 from promptq.naming import Name, Title
 from promptq.selector import Cost, Selector
 from promptq.store.base import Store
@@ -101,6 +109,10 @@ class Queue:
         if dry_run:
             return [entry.name for entry in store.entries(target)]
         return store.prune_claimed(target)
+
+    def withdraw(self, name: str, *, force: bool) -> WithdrawResult:
+        """Remove a pending prompt. With force, also remove one a Consumer has claimed."""
+        return self._open().withdraw(Name(name), force)
 
     # --- Consumer ---
 

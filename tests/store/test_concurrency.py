@@ -30,6 +30,18 @@ def _claim_all(
     out.put(got)
 
 
+def _withdraw_all(
+    store_dir: str, force: bool, barrier: "mp.synchronize.Barrier", out: "mp.Queue[list[str]]"
+) -> None:
+    store = DirectoryStore(Path(store_dir), create=True)
+    got: list[str] = []
+    barrier.wait()
+    for i in range(ITEMS):
+        if store.withdraw(Name(f"a/{i:03d}"), force).withdrawn:
+            got.append(f"a/{i:03d}")
+    out.put(got)
+
+
 def test_concurrent_enqueue_of_same_name_has_exactly_one_winner(tmp_path: Path) -> None:
     ctx = mp.get_context("fork")
     barrier = ctx.Barrier(PROCESSES)
@@ -71,3 +83,55 @@ def test_concurrent_claim_gives_each_item_to_exactly_one_process(tmp_path: Path)
     all_claimed = [n for batch in batches for n in batch]
     assert len(all_claimed) == len(set(all_claimed))  # nobody got the same item twice
     assert set(all_claimed) == names  # nothing was lost
+
+
+def test_concurrent_claim_and_withdraw_never_both_win(tmp_path: Path) -> None:
+    store_dir = tmp_path / "h"
+    store = DirectoryStore(store_dir, create=True)
+    names = {f"a/{i:03d}" for i in range(ITEMS)}
+    for n in names:
+        store.enqueue(Name(n), "x", "ignore")
+
+    ctx = mp.get_context("fork")
+    barrier = ctx.Barrier(2)
+    claims: mp.Queue[list[str]] = ctx.Queue()
+    withdrawals: mp.Queue[list[str]] = ctx.Queue()
+    procs = [
+        ctx.Process(target=_claim_all, args=(str(store_dir), barrier, claims)),
+        ctx.Process(target=_withdraw_all, args=(str(store_dir), False, barrier, withdrawals)),
+    ]
+    for p in procs:
+        p.start()
+    claimed = set(claims.get(timeout=60))
+    withdrawn = set(withdrawals.get(timeout=60))
+    for p in procs:
+        p.join(timeout=60)
+
+    assert not claimed & withdrawn  # no prompt was both claimed and withdrawn
+    assert claimed | withdrawn == names  # nothing was lost
+
+
+def test_forced_withdraw_removes_everything_even_while_claims_race(tmp_path: Path) -> None:
+    store_dir = tmp_path / "h"
+    store = DirectoryStore(store_dir, create=True)
+    names = {f"a/{i:03d}" for i in range(ITEMS)}
+    for n in names:
+        store.enqueue(Name(n), "x", "ignore")
+
+    ctx = mp.get_context("fork")
+    barrier = ctx.Barrier(2)
+    claims: mp.Queue[list[str]] = ctx.Queue()
+    withdrawals: mp.Queue[list[str]] = ctx.Queue()
+    procs = [
+        ctx.Process(target=_claim_all, args=(str(store_dir), barrier, claims)),
+        ctx.Process(target=_withdraw_all, args=(str(store_dir), True, barrier, withdrawals)),
+    ]
+    for p in procs:
+        p.start()
+    claims.get(timeout=60)
+    withdrawn = set(withdrawals.get(timeout=60))
+    for p in procs:
+        p.join(timeout=60)
+
+    assert withdrawn == names  # force removes a prompt whichever state it is in
+    assert store.entries(None) == []
