@@ -13,7 +13,16 @@ from pathlib import Path
 from typing import Literal
 
 from promptq.errors import IncompatibleStore, InvalidName, InvalidTitle, NameConflict, StoreError
-from promptq.models import Claimed, Enqueued, EnqueueResult, Entry, State
+from promptq.models import (
+    Claimed,
+    Enqueued,
+    EnqueueResult,
+    Entry,
+    NotWithdrawn,
+    State,
+    Withdrawn,
+    WithdrawResult,
+)
 from promptq.naming import Name, Title
 from promptq.policy import resolve_policy
 from promptq.selector import EntryView, Selector
@@ -235,8 +244,11 @@ class DirectoryStore:
                         continue  # raced with cleanup of the claimed-side directory
                     break  # another consumer won the race; try the next candidate
                 self._cleanup_dirs(State.PENDING, src)
-                body, enqueued_at, title = self._read_envelope(dst)
-                return Claimed(name, body, enqueued_at, _utc(os.stat(dst).st_mtime), title)
+                try:
+                    body, enqueued_at, title = self._read_envelope(dst)
+                    return Claimed(name, body, enqueued_at, _utc(os.stat(dst).st_mtime), title)
+                except FileNotFoundError:
+                    break  # force-withdrawn right after the claim; try the next candidate
         return None
 
     def dequeue(self, name: Name) -> bool:
@@ -248,6 +260,34 @@ class DirectoryStore:
             return False
         self._cleanup_dirs(State.CLAIMED, path)
         return True
+
+    def withdraw(self, name: Name, force: bool) -> WithdrawResult:
+        """Remove a pending prompt; a claimed one only with force (its Consumer holds it)."""
+        self._check_writable()
+        pending = self._path(State.PENDING, name)
+        claimed = self._path(State.CLAIMED, name)
+        for _ in range(_RETRIES):
+            try:
+                os.unlink(pending)  # races with claim_one's rename on the same file: one wins
+            except (FileNotFoundError, NotADirectoryError, IsADirectoryError):
+                pass
+            else:
+                self._cleanup_dirs(State.PENDING, pending)
+                return Withdrawn(name, State.PENDING)
+            if force:
+                try:
+                    os.unlink(claimed)
+                except (FileNotFoundError, NotADirectoryError, IsADirectoryError):
+                    if pending.is_file():
+                        continue  # released back to pending meanwhile
+                    return NotWithdrawn(name, None)
+                self._cleanup_dirs(State.CLAIMED, claimed)
+                return Withdrawn(name, State.CLAIMED)
+            if claimed.is_file():
+                return NotWithdrawn(name, State.CLAIMED)
+            if not pending.is_file():
+                return NotWithdrawn(name, None)
+        raise StoreError(f"withdraw kept losing races with release: {name}")
 
     def release(self, name: Name) -> bool:
         self._check_writable()

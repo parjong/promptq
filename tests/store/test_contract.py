@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from promptq.errors import NameConflict, StoreError
-from promptq.models import Claimed, Enqueued, Ignored, State
+from promptq.models import Claimed, Enqueued, Ignored, NotWithdrawn, State, Withdrawn
 from promptq.naming import Name, Title
 from promptq.selector import Selector
 from promptq.store.base import Store
@@ -30,6 +30,42 @@ def test_enqueue_claim_dequeue_roundtrip(store: Store) -> None:
     assert not store.has(ALL)
     assert store.dequeue(Name("a/b/1")) is True
     assert store.dequeue(Name("a/b/1")) is False
+
+
+def test_withdraw_removes_a_pending_prompt(store: Store) -> None:
+    enq(store, "a/b/1")
+    enq(store, "a/b/2")
+    assert store.withdraw(Name("a/b/1"), False) == Withdrawn(Name("a/b/1"), State.PENDING)
+    assert store.withdraw(Name("a/b/1"), False) == NotWithdrawn(Name("a/b/1"), None)
+    assert store.withdraw(Name("a/unknown"), False) == NotWithdrawn(Name("a/unknown"), None)
+    assert [e.name for e in store.entries(None)] == ["a/b/2"]
+
+
+def test_withdraw_leaves_a_claimed_prompt_unless_forced(store: Store) -> None:
+    enq(store, "a/1")
+    enq(store, "a/2")
+    store.claim_one(ALL)
+    store.claim_one(ALL)
+    assert store.withdraw(Name("a/1"), False) == NotWithdrawn(Name("a/1"), State.CLAIMED)
+    assert store.withdraw(Name("a/1"), True) == Withdrawn(Name("a/1"), State.CLAIMED)
+    assert store.withdraw(Name("a/1"), True) == NotWithdrawn(Name("a/1"), None)
+    assert store.dequeue(Name("a/2")) is True  # still there, still claimed
+
+
+def test_forced_withdraw_also_removes_a_pending_prompt(store: Store) -> None:
+    enq(store, "a/1")
+    assert store.withdraw(Name("a/1"), True) == Withdrawn(Name("a/1"), State.PENDING)
+    assert store.withdraw(Name("a/unknown"), True) == NotWithdrawn(Name("a/unknown"), None)
+
+
+def test_withdraw_cleans_up_empty_directories(store: Store, store_dir: Path) -> None:
+    enq(store, "a/b/c/1")
+    enq(store, "x/y/1")
+    store.withdraw(Name("a/b/c/1"), False)
+    store.claim_one(Selector.parse("prefix:x/"))
+    store.withdraw(Name("x/y/1"), True)
+    assert not (store_dir / "pending" / "a").exists()
+    assert not (store_dir / "claimed" / "x").exists()
 
 
 def test_duplicate_enqueue_is_ignored_in_both_states(store: Store) -> None:

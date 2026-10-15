@@ -74,6 +74,23 @@ the tutorial generic; concrete integrations go under "사례". -->
 
     $ promptq dequeue --name myapp/SUMMARIZE/1
 
+아직 아무도 가져가지 않은 프롬프트는 `withdraw`로 거둬들일 수 있습니다. 없으면 종료 코드 1을 돌려줍니다.
+
+    $ promptq enqueue --name myapp/SUMMARIZE/2 --file prompt.md --on-dup ignore
+    $ promptq withdraw --name myapp/SUMMARIZE/2
+    $ promptq withdraw --name myapp/SUMMARIZE/2
+    promptq: not found: myapp/SUMMARIZE/2
+    [1]
+
+이미 claim된 프롬프트는 Consumer의 것이므로 지우지 않고 종료 코드 4를 돌려줍니다. 꼭 지워야 하면 `--force`를 붙이세요. 이미 시작된 작업이 취소되지는 않습니다.
+
+    $ promptq enqueue --name myapp/SUMMARIZE/3 --file prompt.md --on-dup ignore
+    $ promptq claim-one --matched prefix:myapp/SUMMARIZE/3 > /dev/null
+    $ promptq withdraw --name myapp/SUMMARIZE/3
+    promptq: claimed: myapp/SUMMARIZE/3 (use --force to remove it)
+    [4]
+    $ promptq withdraw --name myapp/SUMMARIZE/3 --force
+
 더 가져갈 것이 없으면 종료 코드 1을 돌려줍니다. 종료 코드 1을 실패로 받아들이는 호출자는 `--empty-ok`로 0을 받으세요.
 
     $ promptq claim-one --matched prefix:myapp/

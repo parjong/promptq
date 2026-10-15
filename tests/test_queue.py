@@ -10,7 +10,7 @@ from promptq.errors import (
     InvalidTitle,
     StoreError,
 )
-from promptq.models import Enqueued, Ignored, State
+from promptq.models import Enqueued, Ignored, NotWithdrawn, State, Withdrawn
 from promptq.naming import Name
 from promptq.queue import MAX_BODY_BYTES, Queue
 from promptq.selector import Selector
@@ -40,6 +40,16 @@ def test_roundtrip(queue: Queue) -> None:
     assert not queue.has(PREFIX)
     assert queue.dequeue(NAME) is True
     assert queue.dequeue(NAME) is False
+
+
+def test_withdraw_reports_what_it_found(queue: Queue) -> None:
+    queue.enqueue(NAME, "do it", on_dup="ignore")
+    assert queue.withdraw(NAME, force=False) == Withdrawn(Name(NAME), State.PENDING)
+    assert queue.withdraw(NAME, force=False) == NotWithdrawn(Name(NAME), None)
+    queue.enqueue(NAME, "do it", on_dup="ignore")
+    queue.claim_one(PREFIX)
+    assert queue.withdraw(NAME, force=False) == NotWithdrawn(Name(NAME), State.CLAIMED)
+    assert queue.withdraw(NAME, force=True) == Withdrawn(Name(NAME), State.CLAIMED)
 
 
 def test_duplicate_enqueue_reports_existing_state(queue: Queue) -> None:

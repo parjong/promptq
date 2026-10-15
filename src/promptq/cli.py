@@ -1,7 +1,7 @@
 """Command-line interface (08): a thin wrapper over Queue.
 
 It parses arguments, prints results, and maps exceptions to exit codes:
-0 success, 1 nothing found / ignored, 2 usage error, 3 store error.
+0 success, 1 nothing found / ignored, 2 usage error, 3 store error, 4 refused (held).
 """
 
 from __future__ import annotations
@@ -26,6 +26,7 @@ EXIT_OK = 0
 EXIT_NOT_FOUND = 1
 EXIT_USAGE = 2
 EXIT_STORE = 3
+EXIT_HELD = 4
 
 
 class _CliUsageError(PromptqError):
@@ -148,6 +149,26 @@ def prune_claimed(home_arg: str | None, matched: tuple[str, ...], dry_run: bool)
     for name in Queue(home_arg, create=False).prune_claimed(*selectors, dry_run=dry_run):
         click.echo(name)
     return EXIT_OK
+
+
+@cli.command()
+@click.option("--name", required=True, help="Name of the prompt to retract.")
+@click.option("--force", is_flag=True, help="Also remove it if a Consumer has already claimed it.")
+@click.pass_obj
+def withdraw(home_arg: str | None, name: str, force: bool) -> int:
+    """Retract a prompt that no Consumer has claimed yet.
+
+    Exit 0 when removed, 1 when there is no such prompt, and 4 when a Consumer holds it
+    (nothing is removed unless --force is given).
+    """
+    result = Queue(home_arg).withdraw(name, force=force)
+    if result.withdrawn:
+        return EXIT_OK
+    if result.existing_state is None:
+        click.echo(f"promptq: not found: {name}", err=True)
+        return EXIT_NOT_FOUND
+    click.echo(f"promptq: claimed: {name} (use --force to remove it)", err=True)
+    return EXIT_HELD
 
 
 # --- consumer commands ---
