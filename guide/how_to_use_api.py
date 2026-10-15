@@ -2,7 +2,7 @@
 
 The queue lives wherever PROMPTQ_HOME points, so run this against a throwaway directory:
 
-    PROMPTQ_HOME="$(mktemp -d)/queue" uv run python examples/how_to_api.py
+    PROMPTQ_HOME="$(mktemp -d)/queue" uv run python guide/how_to_use_api.py
 """
 
 from promptq import Enqueued, Queue, Selector
